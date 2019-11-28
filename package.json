@@ -1,0 +1,24 @@
+{
+  "name": "recipe-blocks",
+  "scripts": {
+    "dev": "cross-env BABEL_ENV=default webpack --watch",
+    "build": "cross-env BABEL_ENV=default NODE_ENV=production webpack -p"
+  },
+  "main": "index.js",
+  "devDependencies": {
+    "@babel/core": "^7.0.0",
+    "@babel/plugin-transform-react-jsx": "^7.2.0",
+    "babel-loader": "^8.0.4",
+    "@wordpress/babel-preset-default": "^3.0.1",
+    "classnames": "^2.2.6",
+    "cross-env": "^5.1.5",
+    "webpack": "^4.26.1",
+    "webpack-cli": "^3.1.2"
+  },
+  "version": "1.0.0",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^0.19.0",
+    "darkskyjs": "^0.3.0"
+  }
+}
