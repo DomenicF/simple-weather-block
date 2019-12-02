@@ -1,0 +1,10 @@
+$module: 'wp-block-domenicf-simple-weather-block';
+
+.#{$module} {
+  text-align: center;
+}
+
+#weather-icon {
+  display: block;
+  margin: auto;
+}

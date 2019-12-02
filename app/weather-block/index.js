@@ -1,19 +1,21 @@
-import { debounce } from 'debounce';
-
 const { registerBlockType }         =   wp.blocks;
 const { __ }						=   wp.i18n;
-const { InspectorControls, BlockControls, AlignmentToolbar, BlockAlignmentToolbar } = wp.editor;
+const { InspectorControls, RichText, RawHTML, BlockControls, AlignmentToolbar, BlockAlignmentToolbar } = wp.blockEditor;
 const { PanelBody, PanelRow, TextControl, SelectControl, Button } = wp.components;
 
 import Location from './location';
 import Darksky from 'darkskyjs';
+const Skycons = require('skycons')(window);
+let skyconsInstance = new Skycons({ 'color': '#9b1518' });
 const location = new Location();
 const darkSky = new Darksky({ PROXY_SCRIPT: window.location.protocol + '//' + window.location.hostname + "/darksky" });
+
+import '../main.scss';
 
 
 registerBlockType( 'domenicf/simple-weather-block', {
 	title:								__( 'Simple Weather Block', 'simple-weather-block' ),
-	description:						__( 'Easily get the weather based on a zip code and display it in a nice format.', 'simple-weather-block' ),
+	description:						__( 'Easily get the weather based on a given location and display it in a nice format.', 'simple-weather-block' ),
 	category:							__( 'common' ),
 	icon:								'palmtree',
 	attributes: {
@@ -39,9 +41,21 @@ registerBlockType( 'domenicf/simple-weather-block', {
 			type: 'string',
 			default: ''
 		},
+		summary: {
+			type: 'string',
+			default: ''
+		},
 		location_name: {
 			type: 'string',
 			default: ''
+		},
+		icon: {
+			type: 'string',
+			default: ''
+		},
+		message: {
+			type: 'string',
+			default: '<p>Hello</p>'
 		}
 	},
 	edit: props => {
@@ -49,9 +63,24 @@ registerBlockType( 'domenicf/simple-weather-block', {
 
 			darkSky.getCurrentConditions([{ latitude, longitude, name: props.attributes.set_location }], function ( data ) {
 				props.setAttributes({ temperature: data[0].temperature().toString() });
+				props.setAttributes({ icon: data[0].icon() });
+				props.setAttributes({ summary: data[0].summary() });
+
+				let message = `<p>
+									<canvas data-weather-icon="${props.attributes.icon}" id="weather-icon" width="128" height="128"></canvas>
+									<p>
+										The current temperature as of this post is ${props.attributes.temperature}° F in ${props.attributes.location}.
+									</p>
+								</p>`;
+
+				props.setAttributes({ message });
 			});
 
 		}
+
+
+		skyconsInstance.add(document.getElementById('weather-icon'), props.attributes.icon);
+		skyconsInstance.play();
 
 		return [
 			<InspectorControls>
@@ -94,18 +123,20 @@ registerBlockType( 'domenicf/simple-weather-block', {
 				</PanelBody>
 			</InspectorControls>,
 			<div className={ props.className }>
-				<p>
-					{props.attributes.temperature.length > 0 && 'The current temperature as of this post is ' + props.attributes.temperature + ' in ' + props.attributes.location + '.'}
-				</p>
+				<RichText
+					tagName="div"
+					multiline="p"
+					onChange={ new_val => {
+						props.setAttributes({ message: new_val });
+					}}
+					value={ props.attributes.message } />
 			</div>
 		];
 	},
 	save: props => {
 		return (
 			<div className={ props.className }>
-				<p>
-					{props.attributes.temperature.length > 0 && 'The current temperature as of this post is ' + props.attributes.temperature + ' in ' + props.attributes.location + '.'}
-				</p>
+				<RichText.Content tagName="div" value={props.attributes.message} />
 			</div>
 		);
 	}

@@ -13,6 +13,7 @@ require 'enqueue.php';
 require 'classes/Location.php';
 require 'rewrite-rules.php';
 
-
+add_action( 'wp_enqueue_scripts', 'swb_enqueue_skycons' );
+add_action( 'wp_enqueue_scripts', 'swb_enqueue_icons' );
 add_action( 'enqueue_block_editor_assets', 'swb_enqueue_block_editor_assets' );
 add_action( 'enqueue_block_assets', 'swb_enqueue_block_assets' );
