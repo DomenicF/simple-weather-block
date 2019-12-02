@@ -6,13 +6,9 @@ const { InspectorControls, BlockControls, AlignmentToolbar, BlockAlignmentToolba
 const { PanelBody, PanelRow, TextControl, SelectControl, Button } = wp.components;
 
 import Location from './location';
-const location = new Location();
-location.getLocation('boston, ma');
 import Darksky from 'darkskyjs';
+const location = new Location();
 const darkSky = new Darksky({ PROXY_SCRIPT: window.location.protocol + '//' + window.location.hostname + "/darksky" });
-// const data = darkSky.getCurrentConditions([{latitude: 37.8267, longitude: -122.4233, name: 'Canton'}], function (ok) {
-// 	console.log(ok[0].apparentTemperature())
-// });
 
 
 registerBlockType( 'domenicf/simple-weather-block', {
@@ -23,11 +19,11 @@ registerBlockType( 'domenicf/simple-weather-block', {
 	attributes: {
 		location: {
 			type: 'string',
-			default: '02109'
+			default: 'Boston, MA'
 		},
 		location_options: {
 			type: 'array',
-			default: [{ value: 'search', label: 'Search for a location first.' }]
+			default: [{ value: 'search', label: __( 'Search for a location first.' ) }]
 		},
 		set_location: {
 			type: 'string',
@@ -51,7 +47,7 @@ registerBlockType( 'domenicf/simple-weather-block', {
 	edit: props => {
 		let weatherResult = (latitude, longitude) => {
 
-			darkSky.getCurrentConditions([{latitude, longitude, name: props.attributes.set_location}], function (data) {
+			darkSky.getCurrentConditions([{ latitude, longitude, name: props.attributes.set_location }], function ( data ) {
 				props.setAttributes({ temperature: data[0].temperature().toString() });
 			});
 
@@ -65,7 +61,7 @@ registerBlockType( 'domenicf/simple-weather-block', {
 					</PanelRow>
 					<TextControl
 						label={ __( 'Location', 'simple-weather-block' ) }
-						help={ __( 'Enter the location for the place where you want the weather to be displayed.', 'simple-weather-block' )}
+						help={ __( 'Enter the location for the place where you want the weather to be displayed. This will also be used as the location label inside the block.', 'simple-weather-block' )}
 						value={ props.attributes.location }
 						onChange={ new_val => {
 							props.setAttributes( { location: new_val } )
@@ -81,7 +77,6 @@ registerBlockType( 'domenicf/simple-weather-block', {
 								});
 							});
 							props.setAttributes({ location_options });
-							console.log(location_options);
 						});
 					}}>Search</Button>
 					<SelectControl
@@ -100,7 +95,7 @@ registerBlockType( 'domenicf/simple-weather-block', {
 			</InspectorControls>,
 			<div className={ props.className }>
 				<p>
-					{props.attributes.temperature.length > 0 && 'The current temperature as of this post is ' + props.attributes.temperature + ' in ' + props.attributes.set_location + '.'}
+					{props.attributes.temperature.length > 0 && 'The current temperature as of this post is ' + props.attributes.temperature + ' in ' + props.attributes.location + '.'}
 				</p>
 			</div>
 		];
@@ -109,7 +104,7 @@ registerBlockType( 'domenicf/simple-weather-block', {
 		return (
 			<div className={ props.className }>
 				<p>
-					{props.attributes.temperature.length > 0 && 'The current temperature as of this post is ' + props.attributes.temperature + ' in ' + props.attributes.set_location + '.'}
+					{props.attributes.temperature.length > 0 && 'The current temperature as of this post is ' + props.attributes.temperature + ' in ' + props.attributes.location + '.'}
 				</p>
 			</div>
 		);
