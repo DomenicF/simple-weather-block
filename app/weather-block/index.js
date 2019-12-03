@@ -1,7 +1,8 @@
 const { registerBlockType }         =   wp.blocks;
 const { __ }						=   wp.i18n;
 const { InspectorControls, RichText, RawHTML, BlockControls, AlignmentToolbar, BlockAlignmentToolbar } = wp.blockEditor;
-const { PanelBody, PanelRow, TextControl, SelectControl, Button } = wp.components;
+const { PanelBody, PanelRow, TextControl, SelectControl, Button, ToggleControl } = wp.components;
+const { useEffect } = wp.element;
 
 import Location from './location';
 import Darksky from 'darkskyjs';
@@ -53,9 +54,21 @@ registerBlockType( 'domenicf/simple-weather-block', {
 			type: 'string',
 			default: ''
 		},
+		icon_added: {
+			type: 'boolean',
+			default: false
+		},
 		message: {
 			type: 'string',
 			default: '<p>Hello</p>'
+		},
+		apparent_temperature_enabled: {
+			type: 'boolean',
+			default: false
+		},
+		apparent_temperature: {
+			type: 'string',
+			default: ''
 		}
 	},
 	edit: props => {
@@ -65,22 +78,42 @@ registerBlockType( 'domenicf/simple-weather-block', {
 				props.setAttributes({ temperature: data[0].temperature().toString() });
 				props.setAttributes({ icon: data[0].icon() });
 				props.setAttributes({ summary: data[0].summary() });
+				props.setAttributes({ apparent_temperature: data[0].apparentTemperature().toString() });
 
-				let message = `<p>
-									<canvas data-weather-icon="${props.attributes.icon}" id="weather-icon" width="128" height="128"></canvas>
-									<p>
-										The current temperature as of this post is ${props.attributes.temperature}° F in ${props.attributes.location}.
-									</p>
-								</p>`;
-
-				props.setAttributes({ message });
+				defineMessage(data[0].temperature().toString(), data[0].icon(), data[0].apparentTemperature().toString());
 			});
-
 		}
 
+		let defineMessage = (temp, icon, apparent_temperature) => {
+			let message = '<p>';
+				message += `		<canvas data-weather-icon="${icon}" id="weather-icon" width="128" height="128"></canvas>
+									<p>
+										The current temperature as of this post is ${temp}° F in ${props.attributes.location}.
+									</p>
+								`;
+				props.attributes.apparent_temperature_enabled ? message += `<p>
+																The apparent temperature is ${props.attributes.apparent_temperature}° F.
+															</p>` : '';
+				message += '</p>';
 
-		skyconsInstance.add(document.getElementById('weather-icon'), props.attributes.icon);
-		skyconsInstance.play();
+				props.setAttributes({ message });
+
+				if ( ! props.attributes.icon_added ) {
+					skyconsInstance.add(document.getElementById('weather-icon'), icon);
+					props.setAttributes({ icon_added: true });
+				} else {
+					skyconsInstance.set(document.getElementById('weather-icon'), icon);
+				}
+
+				skyconsInstance.play();
+		};
+
+		let selectChange = new_val => {
+			let lat_lon = new_val.split(',');
+			props.setAttributes({ set_location: new_val, latitude: lat_lon[0], longitude: lat_lon[1] });
+			weatherResult(lat_lon[0], lat_lon[1]);
+		};
+
 
 		return [
 			<InspectorControls>
@@ -113,12 +146,22 @@ registerBlockType( 'domenicf/simple-weather-block', {
 						help={ __( 'Choose from a list of possible locations.', 'simple-weather-block' ) }
 						value={ props.attributes.set_location }
 						options={ props.attributes.location_options }
-						onChange={ new_val => {
-							let lat_lon = new_val.split(',');
-							props.setAttributes({ set_location: new_val, latitude: lat_lon[0], longitude: lat_lon[1] });
-							weatherResult(lat_lon[0], lat_lon[1]);
-						} }
+						onChange={ selectChange }
 					/>
+				</PanelBody>
+			</InspectorControls>,
+			<InspectorControls>
+				<PanelBody title={ __('Optional Features', 'simple-weather-block') }>
+					<PanelRow>
+						<p> { __('Select your optional features here.', 'simple-weather-block') }</p>
+					</PanelRow>
+
+					<ToggleControl
+						label="Apparent Temperature"
+						checked={ props.attributes.apparent_temperature_enabled }
+						onChange={ () => { props.setAttributes({ apparent_temperature_enabled: ! props.attributes.apparent_temperature_enabled }) } }
+					/>
+
 
 				</PanelBody>
 			</InspectorControls>,
