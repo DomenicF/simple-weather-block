@@ -23,7 +23,7 @@
   "version": "1.0.0",
   "license": "MIT",
   "dependencies": {
-    "axios": "^0.19.0",
+    "axios": "^0.21.1",
     "darkskyjs": "^0.3.0",
     "skycons": "^1.0.0"
   }
